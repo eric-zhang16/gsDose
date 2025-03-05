@@ -13,3 +13,8 @@ Imports:
     gsDesign,
     mvtnorm
 RoxygenNote: 7.3.2
+Suggests: 
+    gsDesign2,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

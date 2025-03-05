@@ -7,7 +7,7 @@
 gsBoundary(w, h, d1, d2, s, planD, alpha)
 }
 \arguments{
-\item{w}{A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Columns represent dose levels and rows represent stages}
+\item{w}{A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage}
 
 \item{h}{A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage.}
 
@@ -25,7 +25,7 @@ gsBoundary(w, h, d1, d2, s, planD, alpha)
 The efficacy boundaries up to current stage
 }
 \description{
-For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test.
+For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use OBF alpha spending function to allocate alpha across stages
 }
 \examples{
 # 3 doses at dose selection followed with 4 stages for the selected dose

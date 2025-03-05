@@ -1,6 +1,6 @@
 #' @title Calculate efficacy boundary for inverse normal combination test
-#' @description For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test.
-#' @param w A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Columns represent dose levels and rows represent stages
+#' @description For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use OBF alpha spending function to allocate alpha across stages
+#' @param w A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage
 #' @param h A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage.
 #' @param d1 A vector of observed number of events from cohort 1 across stages (up to current stage)
 #' @param d2 A vector of observed number of events from cohort 2 across stages (up to current stage)

@@ -1,0 +1,130 @@
+---
+title: "Appling Combindation Test and Closed Testing Procedure for A Hypothetical Oncology Trial"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Appling Combindation Test and Losed Testing Procedure for A Hypothetical Oncology Trial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## 1.  Background
+Assume a sponsor is evaluating whether a new experimental drug, with the selected optimal dose, is superior to the control drug using an adaptive clinical trial. The primary endpoint is overall survival (OS). 
+
+* The interim analysis (IA1) is planned for dose selection among three candidate dose levels of the experimental drug, compared to the control drug. IA1 occurs when 30 patients per arm have been enrolled. e.g., a total of 120 patients enrolled across three dose arms of the experimental drug and the control drug (a randomization ratio of 1:1:1:1).
+*  After IA1, one dose of the experimental drug will be selected based on the pre-specified criteria. Additional patients will then be randomized in a 1:1 ratio between  the selected dose arm and the control arm until a total of 700 patients have been enrolled across these two arms.
+*  IA2 and IA3 are interim analyses for OS, with the intention to stop early for efficacy. They will be triggered at 50% and 80% information fraction (IF), respectively.
+ * The final analysis (FA) for OS is planned at 520 OS events. 
+
+The statistical testing will be based on the combination test along with the closed testing procedure (Zhang et al. 2025). Patients enrolled before and after dose selection (IA1) will be combined using the inverse normal combination test. The null hypothesis for the selected dose arm will be rejected only if all possible intersection hypotheses that include the selected dose arm are rejected at the alpha level.
+
+## 2.  Calculate OS efficacy boundary up to FA at the design satge 
+
+First, let's set up the inputs. We begin by specifying the weights for Dunnett's test, based on incremental OS data from cohort 1 across IA2 to FA. At IA2, all the weights allocated to the data up to IA2, since this is the first stage for testing.    
+```{r,warning = FALSE, message = FALSE}
+library(gsDose)
+w.ia2 <- c(1,0,0)
+```
+
+At IA3, we need to combine the data at IA2 with the incremental data accrued between IA2 and IA3. We set the weights proportional to the expected number of events at IA2, and the newly accrued events from IA2 to IA3. Similarly, at FA, incremental data across IA2, IA3 and FA need to be combined. We use gsDesign2 to estimate the expected number of events.
+```{r,warning = FALSE, message = FALSE}
+library(gsDesign2)
+
+# design parameters
+n1 <- 60
+n2 <- 700
+gamma <-  c(c( 5, 8, 12,18)*2/3,0,c(18,25),23)
+R <- c(2,2,2,4,4,8,18,1)
+lambda <- 33
+hr <- 0.74
+planE <- c(260,416,520)
+
+# total enrollment for 700 #
+enroll <- define_enroll_rate(
+  duration = R,
+  rate = gamma
+)
+
+# enrollment for cohort 1 60 pts #  
+enroll.n1 <- define_enroll_rate(
+  duration = c(2,2,2,2),
+  rate = gamma[1:4]
+)
+
+# failure rate model
+fail.rate <- define_fail_rate(
+  duration = 1000,
+  fail_rate = log(2) / lambda,
+  hr = hr,
+  dropout_rate = 0
+)
+
+# calculate the expected number of events from n1 at IA2/IA3/FA
+l <- length(planE)
+d.n1 <- rep(NA,l)
+
+for(j in 1:l){
+  
+  # expected time for each IA
+  exp.ia.time <- expected_time(
+    enroll_rate = enroll, fail_rate = fail.rate,
+    ratio = 1, target_event = planE[j],interval=c(0.01,1000))
+  
+  # expected number of events from cohort 1 at the expected time 
+  d.n1[j] <- expected_event(
+    enroll_rate = enroll.n1,
+    fail_rate = fail.rate,
+    total_duration = exp.ia.time$time, simple = TRUE)  
+}
+
+d21 <- d.n1[1]
+d31 <- d.n1[2]
+d41 <- d.n1[3]
+
+# weights at IA3
+w.ia3 <- c(sqrt(d21/d31),sqrt(1-d21/d31),0)
+# weights at FA
+w.fa <- c(sqrt(d21/d41),sqrt((d31-d21)/d41), sqrt((d41-d31)/d41) )
+
+# set up the w matrix for cohort 1
+w <- matrix(c(w.ia2,w.ia3,w.fa), nrow = 3, ncol = 3, byrow = TRUE)
+colnames(w) <- c('IA2','IA3->IA4','IA3->FA')
+row.names(w) <- c('IA2','IA3','FA')
+w
+```
+
+We then create the h matrix of pre-specified weights for cohort 1 and cohort 2. We set them proportional to the number of events in each cohort. We also set the weights to be the same at each IA and FA.
+
+```{r,warning = FALSE, message = FALSE}
+h <- matrix(rep(c(sqrt(n1/n2),sqrt(1-n1/n2)),3),nrow = 3, ncol = 2, byrow = TRUE)
+colnames(h) <- c('Cohort 1','Cohort2')
+row.names(h) <- c('IA2','IA3','FA')
+h
+```
+
+Next, we set the expected number of events cross IAs for cohort 1 and cohort 2, respectively. We also need to provide the planned number of events at FA
+```{r,warning = FALSE, message = FALSE}
+d1 <- ceiling(d.n1) 
+d2 <- planE-d1
+planD <- planE[3]
+```
+We then specify up to which stage the efficacy boundaries need to be calculated. Since FA is the third group sequential test in this trial, setting s = 3 indicates that the calculation should extend up to FA 
+```{r,warning = FALSE, message = FALSE}
+s <- 3
+```
+Lastly, we specify the total alpha. Currently, gsDose only use OBF alpha spending function to allocate alpha across IAs and FA. 
+```{r,warning = FALSE, message = FALSE}
+alpha <- 0.025
+```
+Okay, now let's run the function and generate the boutonnieres. 
+```{r,warning = FALSE, message = FALSE}
+gsBoundary(w,h,d1,d2,s,planD,alpha)
+
+```
+
