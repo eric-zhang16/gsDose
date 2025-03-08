@@ -1,5 +1,5 @@
 ---
-title: "Appling Combindation Test and Closed Testing Procedure for A Hypothetical Oncology Trial"
+title: "Apply Combindation Test and Closed Testing Procedure for A Hypothetical Oncology Trial"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Appling Combindation Test and Losed Testing Procedure for A Hypothetical Oncology Trial}
@@ -22,7 +22,7 @@ Assume a sponsor is evaluating whether a new experimental drug, with the selecte
 *  IA2 and IA3 are interim analyses for OS, with the intention to stop early for efficacy. They will be triggered at 50% and 80% information fraction (IF), respectively.
  * The final analysis (FA) for OS is planned at 520 OS events. 
 
-The statistical testing will be based on the combination test along with the closed testing procedure (Zhang et al. 2025). Patients enrolled before and after dose selection (IA1) will be combined using the inverse normal combination test. The null hypothesis for the selected dose arm will be rejected only if all possible intersection hypotheses that include the selected dose arm are rejected at the alpha level.
+The statistical testing will be based on the combination test along with the closed testing procedure (Zhang et al. 2025). Patients enrolled before and after dose selection (IA1) will be combined using the inverse normal combination test. In total, there are three null hypotheses: dose 1 vs control (H01), dose 2 vs control (H02) and dose 3 vs control (H03), respectively. The null hypothesis of the selected dose arm will be rejected only if all possible intersection hypotheses that include the selected dose arm are rejected at the alpha level.
 
 ## 2.  Calculate OS efficacy boundary up to FA at the design satge 
 
@@ -110,8 +110,8 @@ h
 
 Next, we set the expected number of events cross IAs for cohort 1 and cohort 2, respectively. We also need to provide the planned number of events at FA
 ```{r,warning = FALSE, message = FALSE}
-d1 <- ceiling(d.n1) 
-d2 <- planE-d1
+d <- planE 
+d2 <- planE-ceiling(d.n1)
 planD <- planE[3]
 ```
 We then specify up to which stage the efficacy boundaries need to be calculated. Since FA is the third group sequential test in this trial, setting s = 3 indicates that the calculation should extend up to FA 
@@ -122,9 +122,63 @@ Lastly, we specify the total alpha. Currently, gsDose only use OBF alpha spendin
 ```{r,warning = FALSE, message = FALSE}
 alpha <- 0.025
 ```
-Okay, now let's run the function and generate the boutonnieres. 
+Okay, now let's run the function and generate the boutonnieres using gsBoundary. 
 ```{r,warning = FALSE, message = FALSE}
-gsBoundary(w,h,d1,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha)
 
 ```
+## 3.  Update efficacy boudnary and perform closed testing procedure based on the combination test
 
+Let's say dose arm 2 is selected after IA1. IA2 occurs when 270 OS events have accrued, with 231 coming from cohort 2. We first update the boundary based on the actual number of events.
+```{r,warning = FALSE, message = FALSE}
+d.ia2 <- 270
+d2.ia2 <- 231
+s<-3
+gsBoundary(w=1,h=h[1,],d.ia2,d2.ia2,s,planD,alpha)
+
+```
+Suppose we use the same weights w and h for all intersection hypotheses including individual hypothesis. The boundary at IA2 is 2.90 for all the hypotheses. Next, let's calculate the combination test statistics and perform the closed testing procedure. Assume the cohort 1 based standardized log-rank z statistics for each dose arm compared to the control arm at IA2 are 0.8, 1 and 0.7.  
+```{r,warning = FALSE, message = FALSE}
+z1.ia2 <- matrix(c(0.8,  1,   0.7),nrow = 1, ncol = 3, byrow = T)
+colnames(z1.ia2) <- c('Dose 1 vs control','Dose 2 vs control','Dose 3 vs control')
+row.names(z1.ia2) <- 'IA2'
+z1.ia2
+```
+Suppose the number of events from cohort 1 at IA2 is 40 for Dose 1 vs. Control, 36 for Dose 2 vs. Control, and 38 for Dose 3 vs. Control, respectively.
+```{r,warning = FALSE, message = FALSE}
+d1.ia2 <- matrix(c(40, 36, 38),nrow = 1, ncol = 3, byrow = TRUE)
+colnames(d1.ia2) <- c('Dose 1 vs control','Dose 2 vs control','Dose 3 vs control')
+row.names(d1.ia2) <- 'IA2'
+d1.ia2
+```
+Assume the standardized long-rank z statistic based on cohort 2 is 2.01 at IA2. Let's calculate the combination test and apply closed testing procedure. 
+```{r,warning = FALSE, message = FALSE}
+z2.ia2 <- 2.01
+combTest(w=1,h=h[1,],z1.ia2,d1.ia2, z2.ia2, sid=2,zbound=2.9)
+```
+None of the intersection hypotheses that include H02 are rejected. As a result, the trial continues to IA3. Suppose IA3 is triggered by 430 events with 385 coming from cohort 2. The boundary at IA2 is 2.22.
+```{r,warning = FALSE, message = FALSE}
+d.ia3 <- c(270,430)
+d2.ia3 <- c(231,385)
+s<-3
+gsBoundary(w=w[1:2,1:2],h=h[1:2,1:2],d.ia3,d2.ia3,s,planD,alpha)
+
+```
+Consider the cohort 1 based standardized log-rank z statistics for each dose arm compared to the control arm at IA3 are 0.9, 1.2 and 0.81; and the number of events from cohort 1 at IA3 is 51 for Dose 1 vs. Control, 42 for Dose 2 vs. Control, and 49 for Dose 3 vs. Control, respectively; and the standardized long-rank z statistic based on cohort 2 at IA3 is 2.35. 
+```{r,warning = FALSE, message = FALSE}
+z1.ia3 <- matrix(c(0.8,  1,   0.7,
+                   0.9,  1.2, 0.81),nrow = 2, ncol = 3, byrow = TRUE)
+colnames(z1.ia3) <- c('Dose 1 vs control','Dose 2 vs control','Dose 3 vs control')
+row.names(z1.ia3) <- c('IA2','IA3')
+z1.ia3
+
+d1.ia3 <- matrix(c(40, 36, 38,
+                   51, 42, 49),nrow = 2, ncol = 3, byrow = TRUE)
+colnames(d1.ia3) <- c('Dose 1 vs control','Dose 2 vs control','Dose 3 vs control')
+row.names(d1.ia3) <- c('IA2','IA3')
+d1.ia3
+
+z2.ia3 <- 2.35
+combTest(w=w[2,1:2],h=h[2,],z1.ia3,d1.ia3, z2.ia3, sid=2,zbound=2.22)
+```
+All the intersection hypotheses that include H02 are rejected. Therefore, H02 is rejected and we claim dose arm 2 of the experimental drug is statistically better than the control drug in OS.  

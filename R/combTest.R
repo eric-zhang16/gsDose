@@ -43,8 +43,11 @@ combTest<- function(w,h,z1,d1, z2, sid,zbound){
   for(j in 1:l){
     hj <- hset[j,]
     dose.idj <- dose.id[hj==1 ]
-    zj <- as.matrix(z1[,dose.idj])
-    dj <- as.matrix(d1[,dose.idj])
+    zj <- matrix(NA, nrow=s, ncol=length(dose.idj))
+    zj[,1:length(dose.idj)] <- z1[,dose.idj]
+    dj <- matrix(NA, nrow=s, ncol=length(dose.idj))
+    dj[,1:length(dose.idj)] <- d1[,dose.idj]
+
     z1.dunn  <- combDunnett(w,zj,dj)
     zDunnett[j] <- z1.dunn
     zCombtest[j] <- sum(h*c(z1.dunn,z2))

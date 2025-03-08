@@ -2,7 +2,7 @@
 #' @description For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use OBF alpha spending function to allocate alpha across stages
 #' @param w A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage
 #' @param h A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage.
-#' @param d1 A vector of observed number of events from cohort 1 across stages (up to current stage)
+#' @param d A vector of observed number of events from both cohorts across stages (up to current stage)
 #' @param d2 A vector of observed number of events from cohort 2 across stages (up to current stage)
 #' @param s The planned total number of stages for efficacy testing (excluding dose selection stage)
 #' @param planD The planned total number of events from cohort 2 at FA.
@@ -18,12 +18,12 @@
 #'
 #' w <- 1
 #' h <- c(sqrt(60/700),sqrt(1-60/700))
-#' d1 <- c(20)
+#' d <- c(250)
 #' d2 <- c(230)
 #' s <- 4
 #' planD <- 520
 #' alpha <- 0.025
-#' gsBoundary(w,h,d1,d2,s,planD,alpha)
+#' gsBoundary(w,h,d,d2,s,planD,alpha)
 #'
 #' # calculate boundary at 2nd stage
 #' w <- matrix(c(1,        0,
@@ -31,12 +31,12 @@
 #' h <- matrix(c(sqrt(60/700), sqrt(1-60/700),
 #'              sqrt(60/700),  sqrt(1-60/700)),nrow = 2, ncol = 2, byrow = TRUE)
 #'
-#' d1 <- c(20,25)
+#' d <- c(250,350)
 #' d2 <- c(230,325)
 #' s <- 4
 #' planD <- 520
 #' alpha <- 0.025
-#' gsBoundary(w,h,d1,d2,s,planD,alpha)
+#' gsBoundary(w,h,d,d2,s,planD,alpha)
 #'
 #' # calculate boundary at 3rd stage
 #' w <- matrix(c(1,        0,         0,
@@ -46,12 +46,12 @@
 #'               sqrt(60/700), sqrt(1-60/700),
 #'               sqrt(60/700), sqrt(1-60/700)),nrow = 3, ncol = 2, byrow = TRUE)
 #'
-#' d1 <- c(20,25,29)
+#' d <- c(250,350,459)
 #' d2 <- c(230,325,430)
 #' s <- 4
 #' planD <- 520
 #' alpha <- 0.025
-#' gsBoundary(w,h,d1,d2,s,planD,alpha)
+#' gsBoundary(w,h,d,d2,s,planD,alpha)
 #'
 #' # calculate boundary at 4th stage
 #' w <- matrix(c(1,        0,         0,         0,
@@ -63,17 +63,16 @@
 #'               sqrt(60/700), sqrt(1-60/700),
 #'               sqrt(60/700), sqrt(1-60/700)),nrow = 4, ncol = 2, byrow = TRUE)
 #'
-#' d1 <- c(20,25,29,30)
+#' d <- c(250,350,459,530)
 #' d2 <- c(230,325,430,500)
 #' s <- 4
 #' planD <- 520
 #' alpha <- 0.025
-#' gsBoundary(w,h,d1,d2,s,planD,alpha)
+#' gsBoundary(w,h,d,d2,s,planD,alpha)
 
 
-gsBoundary <- function(w,h,d1,d2,s,planD,alpha){
+gsBoundary <- function(w,h,d,d2,s,planD,alpha){
   sc <- length(d2)
-  d <- d1+d2
   b.lst <- rep(NA,sc)
   for(ss in 1:sc){
 
