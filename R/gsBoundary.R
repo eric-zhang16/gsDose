@@ -72,7 +72,7 @@
 
 
 gsBoundary <- function(w,h,d,d2,s,planD,alpha){
-  sc <- length(d2)
+  sc <- length(d)
   b.lst <- rep(NA,sc)
 
   if(s==1){
