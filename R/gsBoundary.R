@@ -76,7 +76,7 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha){
   b.lst <- rep(NA,sc)
 
   if(s==1){
-    b.lst <- qnorm(0.025, lower.tail = FALSE)
+    b.lst <- qnorm(alpha, lower.tail = FALSE)
   } else {
     for(ss in 1:sc){
 
