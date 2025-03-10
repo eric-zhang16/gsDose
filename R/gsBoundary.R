@@ -74,49 +74,55 @@
 gsBoundary <- function(w,h,d,d2,s,planD,alpha){
   sc <- length(d2)
   b.lst <- rep(NA,sc)
-  for(ss in 1:sc){
 
-    if(ss==1){
-      alpha.spent <- sfLDOF(alpha, t=c( d,planD)/planD )$spend[1]
-      b.lst[ss] <- qnorm(alpha.spent,lower.tail = F)
-    } else {
-      if(ss==s){
-        alpha.cum <- sfLDOF(alpha, t=c( d[1:(ss-1)],planD)/planD )$spend
-        alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
+  if(s==1){
+    b.lst <- qnorm(0.025, lower.tail = FALSE)
+  } else {
+    for(ss in 1:sc){
+
+      if(ss==1){
+        alpha.spent <- sfLDOF(alpha, t=c( d,planD)/planD )$spend[1]
+        b.lst[ss] <- qnorm(alpha.spent,lower.tail = F)
       } else {
-        alpha.cum <- sfLDOF(alpha, t=c( d,planD)/planD )$spend
-        alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
-      }
+        if(ss==s){
+          alpha.cum <- sfLDOF(alpha, t=c( d[1:(ss-1)],planD)/planD )$spend
+          alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
+        } else {
+          alpha.cum <- sfLDOF(alpha, t=c( d,planD)/planD )$spend
+          alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
+        }
 
-      cov.m <- matrix(0, nrow = ss, ncol = ss)
+        cov.m <- matrix(0, nrow = ss, ncol = ss)
 
-      for (i in 1:ss) { # loop over rows
-        for (j in i:ss) { # loop over columns
-          if (i == j) {
-            cov.m[i, j] <- 1  # Set diagonal elements to 1
-          } else {
-            par1.wsum<- 0
-            for(v in 1:i){
-              par1.wsum <- par1.wsum+w[i,v]*w[j,v]
+        for (i in 1:ss) { # loop over rows
+          for (j in i:ss) { # loop over columns
+            if (i == j) {
+              cov.m[i, j] <- 1  # Set diagonal elements to 1
+            } else {
+              par1.wsum<- 0
+              for(v in 1:i){
+                par1.wsum <- par1.wsum+w[i,v]*w[j,v]
+              }
+              par1.hprod <- h[i,1]*h[j,1]
+              par2.hprod <- h[i,2]*h[j,2]
+              cov.m[i, j] <- par1.hprod*par1.wsum + par2.hprod*sqrt(d2[i]/d2[j])
+
+              cov.m[j, i] <- cov.m[i, j]  # Maintain symmetry
             }
-            par1.hprod <- h[i,1]*h[j,1]
-            par2.hprod <- h[i,2]*h[j,2]
-            cov.m[i, j] <- par1.hprod*par1.wsum + par2.hprod*sqrt(d2[i]/d2[j])
-
-            cov.m[j, i] <- cov.m[i, j]  # Maintain symmetry
           }
         }
+
+        # function to calculate Pr(Zi>ci, Z1<c1,Z2<c2...Zi-1<ci-1)
+        inc.prob <- function(x){
+          alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(rep(-Inf,(ss-1)),x ), upper=c(b.lst[!is.na(b.lst)],Inf)   )[1]
+        }
+
+        b.lst[ss] <- uniroot(inc.prob, interval = c(0, 5))$root
       }
 
-      # function to calculate Pr(Zi>ci, Z1<c1,Z2<c2...Zi-1<ci-1)
-      inc.prob <- function(x){
-        alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(rep(-Inf,(ss-1)),x ), upper=c(b.lst[!is.na(b.lst)],Inf)   )[1]
-      }
-
-      b.lst[ss] <- uniroot(inc.prob, interval = c(0, 5))$root
     }
-
   }
+
 
   res <- data.frame(stage=c(1:sc), Zbound=b.lst)
   return(res)
