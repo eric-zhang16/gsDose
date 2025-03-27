@@ -4,7 +4,7 @@
 \alias{gsBoundary}
 \title{Calculate efficacy boundary for inverse normal combination test}
 \usage{
-gsBoundary(w, h, d, d2, s, planD, alpha)
+gsBoundary(w, h, d, d2, s, planD, alpha, sf, sfpar = NULL, bt)
 }
 \arguments{
 \item{w}{A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage}
@@ -19,13 +19,19 @@ gsBoundary(w, h, d, d2, s, planD, alpha)
 
 \item{planD}{The planned total number of events from cohort 2 at FA.}
 
-\item{alpha:}{The assigned alpha level}
+\item{alpha}{The assigned alpha level}
+
+\item{sf}{A spending function. 'OF' for O'Brien-Fleming spending function. 'HSD' for Hwang-Shih-DeCani spending function}
+
+\item{sfpar}{It specifies the parameter for Hwang-Shih-DeCani spending function . It will be ignored if sfu='OBF'}
+
+\item{bt}{Bound type. bt='upper' for efficacy upper bound. bt='lower' for efficacy lower bound.}
 }
 \value{
 The efficacy boundaries up to current stage
 }
 \description{
-For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use OBF alpha spending function to allocate alpha across stages
+For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use an alpha spending function to allocate alpha across stages
 }
 \examples{
 # 3 doses at dose selection followed with 4 stages for the selected dose
@@ -38,7 +44,7 @@ d2 <- c(230)
 s <- 4
 planD <- 520
 alpha <- 0.025
-gsBoundary(w,h,d,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 
 # calculate boundary at 2nd stage
 w <- matrix(c(1,        0,
@@ -51,7 +57,7 @@ d2 <- c(230,325)
 s <- 4
 planD <- 520
 alpha <- 0.025
-gsBoundary(w,h,d,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 
 # calculate boundary at 3rd stage
 w <- matrix(c(1,        0,         0,
@@ -66,7 +72,7 @@ d2 <- c(230,325,430)
 s <- 4
 planD <- 520
 alpha <- 0.025
-gsBoundary(w,h,d,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 
 # calculate boundary at 4th stage
 w <- matrix(c(1,        0,         0,         0,
@@ -83,5 +89,9 @@ d2 <- c(230,325,430,500)
 s <- 4
 planD <- 520
 alpha <- 0.025
-gsBoundary(w,h,d,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
+
+# Add futility bounds
+gsBoundary(w,h,d,d2,s,planD,alpha=1-alpha,sf='HSD',sfpar=-6,bt='lower')
+
 }

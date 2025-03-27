@@ -118,13 +118,13 @@ We then specify up to which stage the efficacy boundaries need to be calculated.
 ```{r,warning = FALSE, message = FALSE}
 s <- 3
 ```
-Lastly, we specify the total alpha. Currently, gsDose only use OBF alpha spending function to allocate alpha across IAs and FA. 
+Lastly, we specify the total alpha. We use OBF alpha spending function to allocate alpha across IAs and FA. 
 ```{r,warning = FALSE, message = FALSE}
 alpha <- 0.025
 ```
 Okay, now let's run the function and generate the boutonnieres using gsBoundary. 
 ```{r,warning = FALSE, message = FALSE}
-gsBoundary(w,h,d,d2,s,planD,alpha)
+gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 
 ```
 ## 3.  Update efficacy boudnary and perform closed testing procedure based on the combination test
@@ -134,7 +134,7 @@ Let's say dose arm 2 is selected after IA1. IA2 occurs when 270 OS events have a
 d.ia2 <- 270
 d2.ia2 <- 231
 s<-3
-gsBoundary(w=1,h=h[1,],d.ia2,d2.ia2,s,planD,alpha)
+gsBoundary(w=1,h=h[1,],d.ia2,d2.ia2,s,planD,alpha,sf='OF',bt='upper')
 
 ```
 Suppose we use the same weights w and h for all intersection hypotheses including individual hypothesis. The boundary at IA2 is 2.90 for all the hypotheses. Next, let's calculate the combination test statistics and perform the closed testing procedure. Assume the cohort 1 based standardized log-rank z statistics for each dose arm compared to the control arm at IA2 are 0.8, 1 and 0.7.  
@@ -161,7 +161,7 @@ None of the intersection hypotheses that include H02 are rejected. As a result, 
 d.ia3 <- c(270,430)
 d2.ia3 <- c(231,385)
 s<-3
-gsBoundary(w=w[1:2,1:2],h=h[1:2,1:2],d.ia3,d2.ia3,s,planD,alpha)
+gsBoundary(w=w[1:2,1:2],h=h[1:2,1:2],d.ia3,d2.ia3,s,planD,alpha,sf='OF',bt='upper')
 
 ```
 Consider the cohort 1 based standardized log-rank z statistics for each dose arm compared to the control arm at IA3 are 0.9, 1.2 and 0.81; and the number of events from cohort 1 at IA3 is 51 for Dose 1 vs. Control, 42 for Dose 2 vs. Control, and 49 for Dose 3 vs. Control, respectively; and the standardized long-rank z statistic based on cohort 2 at IA3 is 2.35. 
