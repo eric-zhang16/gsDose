@@ -28,7 +28,7 @@ gsBoundary(w, h, d, d2, s, planD, alpha, sf, sfpar = NULL, bt)
 \item{bt}{Bound type. bt='upper' for efficacy upper bound. bt='lower' for efficacy lower bound.}
 }
 \value{
-The efficacy boundaries up to current stage
+A list with efficacy boundaries up to current stage, and the covariance matrix
 }
 \description{
 For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use an alpha spending function to allocate alpha across stages

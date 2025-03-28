@@ -12,7 +12,7 @@
 #' @param bt Bound type. bt='upper' for efficacy upper bound. bt='lower' for efficacy lower bound.
 #' @import mvtnorm
 #' @importFrom gsDesign sfLDOF
-#' @return The efficacy boundaries up to current stage
+#' @return A list with efficacy boundaries up to current stage, and the covariance matrix
 #' @export
 #' @examples
 #' # 3 doses at dose selection followed with 4 stages for the selected dose
@@ -86,6 +86,8 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
       b.lst <- qnorm(alpha, lower.tail = TRUE)
     }
 
+    cov.m <- NULL
+
   } else {
     for(ss in 1:sc){
 
@@ -101,6 +103,8 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
         } else if(bt=='lower'){
           b.lst[ss] <- qnorm(alpha.spent,lower.tail = TRUE)
         }
+
+        cov.m <- NULL
 
       } else {
         if(ss==s){
@@ -161,5 +165,6 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
 
 
   res <- data.frame(stage=c(1:sc), Zbound=b.lst)
-  return(res)
+
+  return(list(Z=res,Covariance=cov.m)  )
 }
