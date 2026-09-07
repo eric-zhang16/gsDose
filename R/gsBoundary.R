@@ -5,7 +5,7 @@
 #' @param d A vector of observed number of events from both cohorts across stages (up to current stage)
 #' @param d2 A vector of observed number of events from cohort 2 across stages (up to current stage)
 #' @param s The planned total number of stages for efficacy testing (excluding dose selection stage)
-#' @param planD The planned total number of events from cohort 2 at FA.
+#' @param planD The planned total number of events from both cohorts at FA.
 #' @param alpha The assigned alpha level
 #' @param sf A spending function. 'OF' for O'Brien-Fleming spending function. 'HSD' for Hwang-Shih-DeCani spending function
 #' @param sfpar It specifies the parameter for Hwang-Shih-DeCani spending function . It will be ignored if sfu='OBF'
@@ -93,9 +93,9 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
 
       if(ss==1){
         if(sf=='OF'){
-          alpha.spent <- sfLDOF(alpha, t=c( d,planD)/planD )$spend[1]
+          alpha.spent <- sfLDOF(alpha, t=c( d[1])/planD )$spend
         } else if(sf=='HSD'){
-          alpha.spent <- sfHSD(alpha, t=c( d,planD)/planD, sfpar)$spend[1]
+          alpha.spent <- sfHSD(alpha, t=c( d[1])/planD, sfpar)$spend
         }
 
         if(bt=='upper'){
@@ -114,13 +114,13 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
             alpha.cum <- sfHSD(alpha, t=c( d[1:(ss-1)],planD)/planD, sfpar)$spend
           }
 
-          alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
+          alpha.spent <- alpha - alpha.cum[(ss-1)]
 
         } else {
           if(sf=='OF'){
-            alpha.cum <- sfLDOF(alpha, t=c( d,planD)/planD )$spend
+            alpha.cum <- sfLDOF(alpha, t=c( d[1:ss] )/planD )$spend
           } else if(sf=='HSD'){
-            alpha.cum <- sfHSD(alpha, t=c( d,planD)/planD, sfpar )$spend
+            alpha.cum <- sfHSD(alpha, t=c( d[1:ss] )/planD, sfpar )$spend
           }
           alpha.spent <- alpha.cum[ss]-alpha.cum[(ss-1)]
         }
