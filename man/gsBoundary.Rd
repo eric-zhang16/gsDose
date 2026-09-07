@@ -17,7 +17,7 @@ gsBoundary(w, h, d, d2, s, planD, alpha, sf, sfpar = NULL, bt)
 
 \item{s}{The planned total number of stages for efficacy testing (excluding dose selection stage)}
 
-\item{planD}{The planned total number of events from cohort 2 at FA.}
+\item{planD}{The planned total number of events from both cohorts at FA.}
 
 \item{alpha}{The assigned alpha level}
 
