@@ -1,14 +1,14 @@
 #' @title Calculate efficacy boundary for inverse normal combination test
 #' @description For an intersection hypothesis, calculate the efficacy boundary at current stage for the inverse normal combination test. Currently, the function use an alpha spending function to allocate alpha across stages
-#' @param w A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage
-#' @param h A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage.
-#' @param d A vector of observed number of events from both cohorts across stages (up to current stage)
-#' @param d2 A vector of observed number of events from cohort 2 across stages (up to current stage)
+#' @param w A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage, and the squared weights in each row must sum to 1. A vector is treated as a single-row matrix.
+#' @param h A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage. Each row contains the two weights used at the corresponding stage, and the squared weights in each row must sum to 1. A vector of length 2 is treated as a single-row matrix.
+#' @param d A vector of observed number of events from both cohorts across stages (up to current stage). Must be strictly increasing.
+#' @param d2 A vector of observed number of events from cohort 2 across stages (up to current stage). Must be non-decreasing and cannot exceed d.
 #' @param s The planned total number of stages for efficacy testing (excluding dose selection stage)
 #' @param planD The planned total number of events from both cohorts at FA.
 #' @param alpha The assigned alpha level
 #' @param sf A spending function. 'OF' for O'Brien-Fleming spending function. 'HSD' for Hwang-Shih-DeCani spending function
-#' @param sfpar It specifies the parameter for Hwang-Shih-DeCani spending function . It will be ignored if sfu='OBF'
+#' @param sfpar The parameter for the Hwang-Shih-DeCani spending function. It is required when sf='HSD' and ignored when sf='OF'.
 #' @param bt Bound type. bt='upper' for efficacy upper bound. bt='lower' for efficacy lower bound.
 #' @import mvtnorm
 #' @importFrom gsDesign sfLDOF
@@ -72,11 +72,56 @@
 #' alpha <- 0.025
 #' gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 #'
-#' # Add futility bounds
+#' # Add futility (lower) bounds. By convention, the futility boundary is derived
+#' # by spending the complement of alpha (i.e., 1 - alpha) across stages with a
+#' # conservative Hwang-Shih-DeCani spending function.
 #' gsBoundary(w,h,d,d2,s,planD,alpha=1-alpha,sf='HSD',sfpar=-6,bt='lower')
 #'
 gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
+
+  # ---- input validation ----
+  if (!is.numeric(d) || length(d) < 1 || any(d <= 0))
+    stop("'d' must be a vector of positive event counts")
+  if (!is.numeric(d2) || length(d2) != length(d) || any(d2 <= 0))
+    stop("'d2' must be a vector of positive event counts with the same length as 'd'")
   sc <- length(d)
+  if (sc > 1 && any(diff(d) <= 0))
+    stop("'d' must be strictly increasing across stages")
+  if (sc > 1 && any(diff(d2) < 0))
+    stop("'d2' must be non-decreasing across stages")
+  if (any(d2 > d))
+    stop("'d2' cannot exceed 'd' at any stage")
+  if (!is.numeric(s) || length(s) != 1 || s < 1 || s != round(s))
+    stop("'s' must be a positive integer")
+  if (sc > s)
+    stop("length of 'd' (", sc, ") cannot exceed the planned number of stages 's' (", s, ")")
+  if (!is.numeric(planD) || length(planD) != 1 || planD <= 0)
+    stop("'planD' must be a positive scalar")
+  if (!is.numeric(alpha) || length(alpha) != 1 || alpha <= 0 || alpha >= 1)
+    stop("'alpha' must be a scalar in (0, 1)")
+  if (length(sf) != 1 || !sf %in% c("OF", "HSD"))
+    stop("'sf' must be 'OF' or 'HSD'")
+  if (sf == "HSD" && is.null(sfpar))
+    stop("'sfpar' must be provided when sf='HSD'")
+  if (length(bt) != 1 || !bt %in% c("upper", "lower"))
+    stop("'bt' must be 'upper' or 'lower'")
+
+  if (!is.matrix(w)) w <- matrix(w, nrow = 1)
+  if (!is.matrix(h)) h <- matrix(h, nrow = 1)
+  if (nrow(w) < sc)
+    stop("'w' must have one row of weights per observed stage")
+  if (nrow(h) < sc || ncol(h) != 2)
+    stop("'h' must have one row per observed stage and two columns")
+  if (any(abs(rowSums(w[1:sc, , drop = FALSE]^2) - 1) > 1e-6))
+    stop("the squared weights in each row of 'w' must sum to 1")
+  if (any(abs(rowSums(h[1:sc, , drop = FALSE]^2) - 1) > 1e-6))
+    stop("the squared weights in each row of 'h' must sum to 1")
+
+  # warn when events overrun the planned total at an interim stage
+  n.int <- min(sc, s - 1)
+  if (n.int >= 1 && any(d[1:n.int] >= planD))
+    warning("observed events reach or exceed 'planD' at an interim stage: the information fraction is capped at 1, all remaining alpha is spent at that analysis, and boundaries for later stages will be infinite")
+
   b.lst <- rep(NA,sc)
 
   if(s==1){
@@ -145,19 +190,29 @@ gsBoundary <- function(w,h,d,d2,s,planD,alpha,sf,sfpar=NULL,bt){
           }
         }
 
-        if(bt=='upper'){
-          # function to calculate Pr(Zi>ci, Z1<c1,Z2<c2...Zi-1<ci-1)
-          inc.prob <- function(x){
-            alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(rep(-Inf,(ss-1)),x ), upper=c(b.lst[!is.na(b.lst)],Inf)   )[1]
-          }
-        } else if(bt=='lower'){
-          # function to calculate Pr(Zi<=ci, Z1>c1,Z2>c2...Zi-1>ci-1)
-          inc.prob <- function(x){
-            alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(b.lst[!is.na(b.lst)],-Inf ), upper=c(rep(Inf,(ss-1)),x)   )[1]
-          }
-        }
+        # tightened quasi-Monte-Carlo settings so boundaries are reproducible
+        # across runs (the mvtnorm default abseps of 1e-3 lets results wobble)
+        alg <- mvtnorm::GenzBretz(abseps = 1e-7, maxpts = 1e6)
 
-        b.lst[ss] <- uniroot(inc.prob, interval = c(-5, 5))$root
+        if (alpha.spent < 1e-12) {
+          warning("no alpha remains to be spent at stage ", ss,
+                  "; boundary set to ", if (bt == "upper") "Inf" else "-Inf")
+          b.lst[ss] <- if (bt == "upper") Inf else -Inf
+        } else {
+          if(bt=='upper'){
+            # function to calculate Pr(Zi>ci, Z1<c1,Z2<c2...Zi-1<ci-1)
+            inc.prob <- function(x){
+              alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(rep(-Inf,(ss-1)),x ), upper=c(b.lst[!is.na(b.lst)],Inf), algorithm=alg   )[1]
+            }
+          } else if(bt=='lower'){
+            # function to calculate Pr(Zi<=ci, Z1>c1,Z2>c2...Zi-1>ci-1)
+            inc.prob <- function(x){
+              alpha.spent-mvtnorm::pmvnorm(mean=rep(0,ss ), corr=cov.m, lower=c(b.lst[!is.na(b.lst)],-Inf ), upper=c(rep(Inf,(ss-1)),x), algorithm=alg   )[1]
+            }
+          }
+
+          b.lst[ss] <- uniroot(inc.prob, interval = c(-15, 15), extendInt = "yes", tol = 1e-7)$root
+        }
       }
 
     }

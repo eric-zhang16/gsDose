@@ -1,23 +1,28 @@
 Package: gsDose
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Group Sequential Multi-Arm Multi-Stage Phase 2/3 Design with Dose Selection
+Version: 0.2.0
+Authors@R: person(given = "Eric (Pingye)", family = "Zhang",
+    email = "pingyezhangusc@gmail.com", role = c("aut", "cre"))
+Description: Implements the statistical testing framework for a multi-arm
+    multi-stage group sequential seamless phase 2/3 design with dose selection
+    for oncology trials with a survival endpoint, as described in Zhang and Jin
+    (2025) <doi:10.1080/19466315.2025.2539831>. Provides the inverse normal
+    combination test combining patient cohorts enrolled before and after dose
+    selection, Dunnett-based closed testing across dose arms, and group
+    sequential efficacy boundaries based on alpha spending functions.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: 
+Imports:
     gsDesign,
     mvtnorm,
     stats
-RoxygenNote: 7.3.2
-Suggests: 
+Suggests:
     gsDesign2,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

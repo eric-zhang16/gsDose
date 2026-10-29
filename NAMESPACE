@@ -4,7 +4,11 @@ export(combDunnett)
 export(combTest)
 export(gsBoundary)
 import(mvtnorm)
-importFrom(gsDesign,sfHSD)
-importFrom(gsDesign,sfLDOF)
-importFrom(stats,qnorm)
-importFrom(stats,uniroot)
+importFrom(gsDesign,
+  sfHSD,
+  sfLDOF
+)
+importFrom(stats,
+  qnorm,
+  uniroot
+)

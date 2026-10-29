@@ -4,14 +4,16 @@
 \alias{combDunnett}
 \title{Calculate the inverse normal combination z statistic based on Dunnett's test}
 \usage{
-combDunnett(w, z, d)
+combDunnett(w, z, d, ratio = 1)
 }
 \arguments{
-\item{w}{A vector of pre-specified weights for incremental test statistics up to the current stage.}
+\item{w}{A vector of pre-specified weights for incremental test statistics up to the current stage. The squared weights must sum to 1.}
 
 \item{z}{A matrix of cumulative log-rank test statistics across stages (up to current stage) for individual hypotheses that are in the intersection hypothesis. Columns represent dose levels, rows represent stages.}
 
-\item{d}{A matrix of cumulative number of events across stages (up to current stage) for dose levels that are included in the intersection hypothesis. Columns represent dose levels, rows represent stages.}
+\item{d}{A matrix of cumulative number of events across stages (up to current stage) for dose levels that are included in the intersection hypothesis. Columns represent dose levels, rows represent stages. Event counts must be non-decreasing across stages. An arm with no incremental events at a stage is excluded from the Dunnett test at that stage, with a warning.}
+
+\item{ratio}{A vector of randomization ratios of each dose arm relative to the control arm (n_dose/n_control). It determines the correlation of the Dunnett test statistics: corr(i,j) = sqrt(lambda_i*lambda_j) with lambda = ratio/(1+ratio). A scalar is recycled across arms. The default ratio = 1 (equal allocation) gives the familiar correlation of 0.5.}
 }
 \value{
 The inverse normal Z statistic for the Dunnett's test
@@ -27,7 +29,10 @@ z <- matrix(c(1.1, 0.8,1.2,
              1.8, 1.6,1.6),nrow = 3, ncol = 3, byrow = TRUE)
 d <- matrix(c(20, 18,19,
              22, 21,23,
-             25, 23,23),nrow = 3, ncol = 3, byrow = TRUE)
+             25, 23,26),nrow = 3, ncol = 3, byrow = TRUE)
 combDunnett(w,z,d)
+
+# Unequal randomization: dose arms randomized 2:1 against control
+combDunnett(w,z,d,ratio=2)
 
 }

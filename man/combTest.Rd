@@ -4,22 +4,24 @@
 \alias{combTest}
 \title{Calculate inverse normal combination z statistics combining cohort 1 and 2}
 \usage{
-combTest(w, h, z1, d1, z2, sid, zbound)
+combTest(w, h, z1, d1, z2, sid, zbound, ratio = 1)
 }
 \arguments{
-\item{w}{A vector of pre-specified weights for incremental test statistics across stages based on cohort 1. Same for all intersection hypotheses.}
+\item{w}{A vector of pre-specified weights for incremental test statistics across stages based on cohort 1. Same for all intersection hypotheses. The squared weights must sum to 1.}
 
-\item{h}{A vector of pre-specified weights for cohort 1 and cohort 2, respectively, at current stage. Same for all intersection hypotheses.}
+\item{h}{A vector of pre-specified weights for cohort 1 and cohort 2, respectively, at current stage. Same for all intersection hypotheses. The squared weights must sum to 1.}
 
 \item{z1}{A matrix of cumulative log-rank test statistics across stages (up to current stage) for individual hypotheses that are in the intersection hypothesis. Columns represent dose levels, rows represent stages.}
 
-\item{d1}{A matrix of cumulative number of events across stages (up to current stage) for dose levels that are included in the intersection hypothesis. Columns represent dose levels, rows represent stages.}
+\item{d1}{A matrix of cumulative number of events across stages (up to current stage) for dose levels that are included in the intersection hypothesis. Columns represent dose levels, rows represent stages. Event counts must be non-decreasing across stages.}
 
 \item{z2}{The log-rank test statistic at current stage for the selected dose arm based on cohort 2.}
 
 \item{sid}{ID of the selected dose}
 
 \item{zbound}{Standardized efficacy boundary}
+
+\item{ratio}{A vector of randomization ratios of each dose arm relative to the control arm (n_dose/n_control), passed to \code{\link{combDunnett}} to determine the correlation of the Dunnett test statistics. A scalar is recycled across arms. The default ratio = 1 (equal allocation) gives the familiar correlation of 0.5.}
 }
 \value{
 The inverse normal combination test Z statistics for all possible intersection hypotheses.
@@ -37,7 +39,7 @@ z1 <- matrix(c(0.7,  1,   0.7,
               0.85, 1.2, 1),nrow = 3, ncol = 3, byrow = TRUE)
 d1 <- matrix(c(20, 18,19,
               22, 21,23,
-              25, 23,23),nrow = 3, ncol = 3, byrow = TRUE)
+              25, 23,26),nrow = 3, ncol = 3, byrow = TRUE)
 z2 <- 2.1
 sid <- 2 # dose 2 is selected
 zbound <- 2.01

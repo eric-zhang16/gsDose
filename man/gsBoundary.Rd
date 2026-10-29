@@ -7,13 +7,13 @@
 gsBoundary(w, h, d, d2, s, planD, alpha, sf, sfpar = NULL, bt)
 }
 \arguments{
-\item{w}{A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage}
+\item{w}{A matrix of pre-specified weights for the incremental test statistics up to current stage based on cohort 1. Each row contains the weights used at the corresponding stage, and the squared weights in each row must sum to 1. A vector is treated as a single-row matrix.}
 
-\item{h}{A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage.}
+\item{h}{A matrix of pre-specified weights for cohort 1 and cohort 2 up to current stage. Each row contains the two weights used at the corresponding stage, and the squared weights in each row must sum to 1. A vector of length 2 is treated as a single-row matrix.}
 
-\item{d}{A vector of observed number of events from both cohorts across stages (up to current stage)}
+\item{d}{A vector of observed number of events from both cohorts across stages (up to current stage). Must be strictly increasing.}
 
-\item{d2}{A vector of observed number of events from cohort 2 across stages (up to current stage)}
+\item{d2}{A vector of observed number of events from cohort 2 across stages (up to current stage). Must be non-decreasing and cannot exceed d.}
 
 \item{s}{The planned total number of stages for efficacy testing (excluding dose selection stage)}
 
@@ -23,7 +23,7 @@ gsBoundary(w, h, d, d2, s, planD, alpha, sf, sfpar = NULL, bt)
 
 \item{sf}{A spending function. 'OF' for O'Brien-Fleming spending function. 'HSD' for Hwang-Shih-DeCani spending function}
 
-\item{sfpar}{It specifies the parameter for Hwang-Shih-DeCani spending function . It will be ignored if sfu='OBF'}
+\item{sfpar}{The parameter for the Hwang-Shih-DeCani spending function. It is required when sf='HSD' and ignored when sf='OF'.}
 
 \item{bt}{Bound type. bt='upper' for efficacy upper bound. bt='lower' for efficacy lower bound.}
 }
@@ -91,7 +91,9 @@ planD <- 520
 alpha <- 0.025
 gsBoundary(w,h,d,d2,s,planD,alpha,sf='OF',bt='upper')
 
-# Add futility bounds
+# Add futility (lower) bounds. By convention, the futility boundary is derived
+# by spending the complement of alpha (i.e., 1 - alpha) across stages with a
+# conservative Hwang-Shih-DeCani spending function.
 gsBoundary(w,h,d,d2,s,planD,alpha=1-alpha,sf='HSD',sfpar=-6,bt='lower')
 
 }

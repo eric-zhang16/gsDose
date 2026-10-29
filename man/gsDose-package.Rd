@@ -4,8 +4,17 @@
 \name{gsDose-package}
 \alias{gsDose}
 \alias{gsDose-package}
-\title{gsDose: What the Package Does (Title Case)}
+\title{gsDose: Group Sequential Multi-Arm Multi-Stage Phase 2/3 Design with Dose Selection}
 \description{
-More about what it does (maybe more than one line) Use four spaces when indenting paragraphs within the Description.
+Implements the statistical testing framework for a multi-arm multi-stage group sequential seamless phase 2/3 design with dose selection for oncology trials with a survival endpoint, as described in Zhang and Jin (2025) \doi{10.1080/19466315.2025.2539831}. Provides the inverse normal combination test combining patient cohorts enrolled before and after dose selection, Dunnett-based closed testing across dose arms, and group sequential efficacy boundaries based on alpha spending functions.
+}
+\author{
+\strong{Maintainer}: Eric (Pingye) Zhang \email{pingyezhangusc@gmail.com}
+
+Authors:
+\itemize{
+  \item Eric (Pingye) Zhang \email{pingyezhangusc@gmail.com}
+}
+
 }
 \keyword{internal}

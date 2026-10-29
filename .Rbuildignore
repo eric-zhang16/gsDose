@@ -1,2 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^reference$
+^Correlation_Incremental\.md$
+^corr_logrank\.md$
