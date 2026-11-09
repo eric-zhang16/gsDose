@@ -1,11 +1,23 @@
 # gsDose
 
-gsDose is an R package that provides functions to calculate combination test statistics along with the closed testing procedure
-for a survival endpoint in a multi-arm multi-stage group sequential phase 2/3 trial with dose selection.
+gsDose is an R package for **inferentially seamless phase 2/3 adaptive designs with dose selection in the phase 2 part**:
+multi-arm multi-stage trials that start with several dose arms versus a common control, select one dose at an interim
+analysis during phase 2, and carry patients from both before and after dose selection into the confirmatory phase 3
+inference. The package provides the combination test statistics and the closed testing procedure for a survival
+endpoint, along with group sequential efficacy boundaries — so type I error is strictly controlled despite the
+adaptive dose selection and the pooling of the two patient cohorts.
 
 It implements the design proposed in:
 
 > Zhang, E. (P.) and Jin, M. (2025). A Multi-Arm Multi-Stage Group Sequential Phase 2/3 Design with Dose Selection for Oncology Trials. *Statistics in Biopharmaceutical Research*. [doi:10.1080/19466315.2025.2539831](https://doi.org/10.1080/19466315.2025.2539831)
+
+## 🤖 Use gsDose with an AI agent
+
+**[gsdose-skill](https://github.com/eric-zhang16/gsdose-skill)** is a [Claude Code](https://claude.ai/code)
+skill that drives this package through a **structured Q&A**: it collects every design input one
+question at a time (with validation and plain-English explanations), computes the boundaries and
+the combination test / closed testing, and delivers a Word + JSON report with a standalone
+reproduction R script. You don't need to know the package API — you need to know your trial.
 
 ## Installation
 
